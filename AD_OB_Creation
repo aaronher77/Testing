@@ -1,0 +1,37 @@
+---
+- name: AD Object and Group Creation
+  hosts: windows_servers  # Ensure this points to your group of Windows domain controllers or servers
+  gather_facts: no
+  tasks:
+
+    - name: Ensure a domain user exists
+      win_domain_user:
+        name: newuser
+        password: "{{ user_password }}"
+        state: present
+        groups:
+          - Domain Users
+        attributes:
+          givenName: John
+          sn: Doe
+          company: MyCompany
+        upn: newuser@yourdomain.com
+      become: yes
+      become_method: runas
+      vars:
+        ansible_become_password: "{{ domain_admin_password }}"
+        ansible_become_user: administrator@yourdomain.com
+        ansible_connection: winrm
+
+    - name: Ensure a domain group exists
+      win_domain_group:
+        name: "NewUsersGroup"
+        description: "This is a new group for new users."
+        scope: global
+        category: security
+      become: yes
+      become_method: runas
+      vars:
+        ansible_become_password: "{{ domain_admin_password }}"
+        ansible_become_user: administrator@yourdomain.com
+        ansible_connection: winrm
