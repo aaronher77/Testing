@@ -1,0 +1,21 @@
+---
+- name: Create AD Computer object if it doesnt exist
+  hosts: kevin_windows
+  gather_facts: no
+  #collections:
+  #- microsoft.ad
+  vars_files:
+   - scorch_credentials.yml
+  vars:
+    computer_name: CD-SM-V99995
+    ou_path: OU=Unreleased,OU=Servers,OU=Common,DC=FIDEV,DC=COM
+    sam_Account: CD-SM-V99995$
+
+  tasks:
+   - name: Create New AD Computer Object
+     microsoft.ad.computer:
+      name: "{{ computer_name }}"
+      location: "{{ ou_path }}"
+      user_name: "{{ ad_user }}"
+      password: "{{ ad_password }}"
+      state: present
