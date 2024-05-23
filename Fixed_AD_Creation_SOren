@@ -1,0 +1,39 @@
+---
+- name: Create AD Computer object if it doesn't exist
+  hosts: kevin_windows
+  gather_facts: no
+  vars_files:
+    - scorch_credentials.yml
+  vars:
+    computer_name: CD-SM-V99995
+    ou_path: OU=Unreleased,OU=Servers,OU=Common,DC=FIDEV,DC=COM
+    sam_account: CD-SM-V99995$
+
+  tasks:
+    - name: Check if the computer object exists
+      ansible.windows.win_powershell:
+        script: |
+          if (Get-ADComputer -Filter "Name -eq '{{ computer_name }}'") {
+            Write-Output "exists"
+          } else {
+            Write-Output "not_exists"
+          }
+      register: computer_check
+
+    - name: Debug computer check result
+      debug:
+        msg: "Computer existence check: {{ computer_check.stdout }}"
+
+    - name: Create the computer object if it does not exist
+      microsoft.ad.computer:
+        name: "{{ computer_name }}"
+        location: "{{ ou_path }}"
+        user_name: "{{ ad_user }}"
+        password: "{{ ad_password }}"
+        state: present
+      when: computer_check.stdout == "not_exists"
+      register: computer_creation
+
+    - name: Debug computer creation result
+      debug:
+        var: computer_creation
